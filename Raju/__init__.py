@@ -15,6 +15,7 @@ bot = commands.Bot(
     )
 
 bot.load_extension('Raju.Cogs.codechef')
+bot.load_extension('Raju.Cogs.codeforces')
 
 @bot.event
 async def on_ready():
