@@ -9,13 +9,18 @@ import json
 
 tz = pytz.timezone('Asia/Kolkata')
 
+
 class CodeChef(commands.Cog):
+    """
+    Define commands which use data from CodeChef platform.
+    """
+
     def __init__(self, bot):
         self.bot = bot
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("Codechef command added")   
+        print("Module Codechef Loaded")
 
     @commands.group(pass_context=True)
     async def Codechef(self, ctx):
@@ -26,9 +31,9 @@ class CodeChef(commands.Cog):
     @Codechef.command()
     async def listcontests(self, ctx):
         await ctx.send("contests")
-    
+
     @Codechef.command()
-    async def contestsinfo(self, ctx, code : str):
+    async def contestsinfo(self, ctx, code: str):
         uri = f'https://www.codechef.com/api/contests/{code}'
         res = requests.get(uri)
         rev_json = json.loads(res.content)
@@ -36,9 +41,10 @@ class CodeChef(commands.Cog):
             emb = discord.Embed(title=code, description=rev_json['name'])
             img_url = f"https://s3.amazonaws.com/codechef_shared{rev_json['banner']}"
             emb.set_image(url=img_url)
-            await ctx.send(embed = emb)
+            await ctx.send(embed=emb)
         else:
             await ctx.send("Invalid Contest Code")
+
 
 def setup(bot):
     bot.add_cog(CodeChef(bot))
