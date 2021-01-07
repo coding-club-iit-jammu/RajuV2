@@ -25,13 +25,30 @@ class CodeForces(commands.Cog):
             await ctx.send("Call further commands in Codeforces")
 
     @cf.command()
-    async def listcontests(self, ctx):
+    async def listcontests(self, ctx, *, args=None):
         """
         List the upcoming contest list. 
         Uses the Optional arg for filtering for div:1,2,3 
+        Checks arg type, and if valid (1-3).
         """
         # TODO: Fetch atmost 5 days of contests
+
         allContests = await getContests()
+        if(args):
+            try:
+                division = int(args)
+            except:
+                await ctx.send("Please send a valid integer argument (1/2/3)")
+                return
+            errorCode, errorMessage = checkValidDiv(division)
+            if(errorCode == -1):
+                await ctx.send(errorMessage)
+                return
+
+            allContests = filterContest(allContests, division)
+            if(len(allContests) == 0):
+                await ctx.send("No Contests found for Div. "+str(args))
+
         for contest in allContests:
             Title, Url, Type, StartTime = extractFields(contest)
             embedVar = makeEmbed(Title, Url, Type, StartTime)
@@ -119,3 +136,31 @@ def extractFields(contest):
     contestID = contest["id"]
     contestURL = "http://codeforces.com/contests/" + str(contestID)
     return contestTitle, contestURL, contestType, contestTime
+
+
+"""
+    Functions for checking Arguments Validity
+"""
+
+
+def checkValidDiv(division):
+    """
+    Checks whether divsion lies in a range of 1-3
+    """
+
+    if(division < 1 or division > 3):
+        return -1, str(division)+" is not a valid Division"
+    return 1, ""
+
+
+def filterContest(allContests, division):
+    """
+    Filters contest by their division
+    """
+
+    filterTag = "Div. "+str(division)
+    filteredContests = []
+    for contest in allContests:
+        if(filterTag in contest["name"]):
+            filteredContests.append(contest)
+    return filteredContests
