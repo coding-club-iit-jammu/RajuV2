@@ -12,7 +12,7 @@
 ### Codeforces:
 - [ ] Overall Ranklist IITJ 
 - [ ] Contests
-  - [ ] Div 1,2,3
+  - [X] Div 1,2,3
   - [ ] Others??
 - [ ] Assign Roles based on ratings
 
