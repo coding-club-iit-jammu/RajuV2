@@ -50,8 +50,8 @@ class CodeForces(commands.Cog):
                 await ctx.send("No Contests found for Div. "+str(args))
 
         for contest in allContests:
-            Title, Url, Type, StartTime = extractFields(contest)
-            embedVar = makeEmbed(Title, Url, Type, StartTime)
+            Title, Url, Type, StartTime = extractContestFields(contest)
+            embedVar = makeContestEmbed(Title, Url, Type, StartTime)
             await ctx.send(embed=embedVar)
         pass
 
@@ -86,10 +86,21 @@ class CodeForces(commands.Cog):
         # users = (await cf.getUserInfo(handle_list) )
         # msg = [str(a) + ": "+str(b)
         #        for (a, b) in zip(handle_list, users) ]
-        args = list(args.split(" "))
+        args = list(args.split(","))
+        args = [arg.strip() for arg in args]
         problems = await cf.getProblem(args)
+        if(len(problems) == 0):
+            errorTag = ",".join(args)
+            await ctx.send("No problems found with tags "+errorTag)
 
-        await ctx.send(json.dumps(problems, indent=3))
+        for problem in problems:
+            problemTitle, problemURL, problemRating, problemTags = extractProblemFields(
+                problem)
+            embedVar = makeProblemEmbed(
+                problemTitle,  problemURL, problemRating, problemTags)
+            await ctx.send(embed=embedVar)
+
+        # await ctx.send(json.dumps(problems, indent=3))
 
 
 def setup(bot):
@@ -111,21 +122,23 @@ def convertTime(time):
     return s
 
 
-def makeEmbed(Title, Url, Type, StartTime):
+def extractProblemFields(problem):
     """
-    Makes an embed given the extracted fields 
-    returs: Embed Object
+     Extract Fields from a JSON
+    returns: the extracted fields
     """
-    embedVar = discord.Embed(
-        title=Title, color=0x00ff00, url=Url)
-    embedVar.set_thumbnail(url=CODEEFORCES_THUMBNAIL)
-    embedVar.add_field(name="Type", value=Type, inline=False)
-    embedVar.add_field(name="Start Time", value=StartTime, inline=False)
+    problemTitle = problem["name"]
+    problemContestId = problem["contestId"]
+    problemIndex = problem["index"]
+    problemURL = "https://codeforces.com/contest/" + \
+        str(problemContestId)+"/problem/"+str(problemIndex)
+    problemRating = problem["rating"]
+    problemTags = ",".join(problem["tags"])
 
-    return embedVar
+    return problemTitle, problemURL, problemRating, problemTags
 
 
-def extractFields(contest):
+def extractContestFields(contest):
     """
     Extract Fields from a JSON
     returns: the extracted fields
@@ -136,6 +149,40 @@ def extractFields(contest):
     contestID = contest["id"]
     contestURL = "http://codeforces.com/contests/" + str(contestID)
     return contestTitle, contestURL, contestType, contestTime
+
+
+def makeEmbedTemplate(Title, Url, Thumbnail=CODEEFORCES_THUMBNAIL):
+    """
+    Makes an embedTemplate given Title, url and thumbnail
+    returs: Embed Object
+    """
+    embedVar = discord.Embed(
+        title=Title, color=0x00ff00, url=Url)
+    embedVar.set_thumbnail(url=Thumbnail)
+    return embedVar
+
+
+def makeContestEmbed(Title, Url, Type, StartTime):
+    """
+    Makes an embed for a contest 
+    returns: Embed Object
+    """
+    embedVar = makeEmbedTemplate(Title, Url)
+    embedVar.add_field(name="Type", value=Type, inline=False)
+    embedVar.add_field(name="Start Time", value=StartTime, inline=False)
+    return embedVar
+
+
+def makeProblemEmbed(Title, Url, Rating, Tags):
+    """
+    Makes an embed for a Problem
+    returns: Embed Object
+    """
+    embedVar = makeEmbedTemplate(Title, Url)
+    embedVar.add_field(name="Rating", value=Rating, inline=False)
+    embedVar.add_field(name="Tags", value=Tags, inline=False)
+
+    return embedVar
 
 
 """

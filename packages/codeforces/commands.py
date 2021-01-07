@@ -51,9 +51,9 @@ async def getContests(all=False):
     allContests = (await get(methodName, methodParam))['result']
 
     # Filter the response for only future contests
-    # define the filter clause lambda 
-    clause = lambda x: x['phase'] == "BEFORE"
-    futureContests = list(filter(clause,allContests))
+    # define the filter clause lambda
+    def clause(x): return x['phase'] == "BEFORE"
+    futureContests = list(filter(clause, allContests))
 
     return futureContests
 
@@ -87,6 +87,10 @@ async def getProblem(tags, counts=2):
 
     allProblems = problems['result']['problems']
     lenProblems = len(allProblems)
+
+    # if no problems are found return empty Array
+    if(lenProblems == 0):
+        return []
 
     # randomly select the N problems from the problemset
     randomProblemsIdxs = sample(range(lenProblems), counts)
