@@ -1,6 +1,9 @@
-from packages.codeforces.commands import getProblem, getUserInfo
+from packages.codeforces.commands import getProblem, getUserInfo, getContests
 import discord
 from discord.ext import commands
+import json
+
+CODEEFORCES_THUMBNAIL = "https://sta.codeforces.com/s/96009/images/codeforces-telegram-square.png"
 
 
 class CodeForces(commands.Cog):
@@ -28,6 +31,11 @@ class CodeForces(commands.Cog):
         Uses the Optional arg for filtering for div:1,2,3 
         """
         # TODO: Fetch atmost 5 days of contests
+        allContests = await getContests()
+        for contest in allContests:
+            Title, Url, Type, StartTime = extractFields(contest)
+            embedVar = makeEmbed(Title, Url, Type, StartTime)
+            await ctx.send(embed=embedVar)
         pass
 
     @cf.command()
@@ -56,7 +64,7 @@ class CodeForces(commands.Cog):
         import packages.codeforces as cf
         import json
         # def get_rating(user): return user['rating']
-# 
+#
         # handle_list = [handle for handle in handles.split(' ')]
         # users = (await cf.getUserInfo(handle_list) )
         # msg = [str(a) + ": "+str(b)
@@ -64,8 +72,50 @@ class CodeForces(commands.Cog):
         args = list(args.split(" "))
         problems = await cf.getProblem(args)
 
-        await ctx.send(json.dumps(problems,indent = 3))
+        await ctx.send(json.dumps(problems, indent=3))
 
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))
+
+
+"""
+    Added extra functionality for better display
+"""
+
+
+def convertTime(time):
+    """
+    Converting time in seconds to datetime object
+    returns: string
+    """
+    from datetime import datetime
+    s = (datetime.fromtimestamp(time).strftime("%I:%M %p %A, %B %d, %Y "))
+    return s
+
+
+def makeEmbed(Title, Url, Type, StartTime):
+    """
+    Makes an embed given the extracted fields 
+    returs: Embed Object
+    """
+    embedVar = discord.Embed(
+        title=Title, color=0x00ff00, url=Url)
+    embedVar.set_thumbnail(url=CODEEFORCES_THUMBNAIL)
+    embedVar.add_field(name="Type", value=Type, inline=False)
+    embedVar.add_field(name="Start Time", value=StartTime, inline=False)
+
+    return embedVar
+
+
+def extractFields(contest):
+    """
+    Extract Fields from a JSON
+    returns: the extracted fields
+    """
+    contestTitle = contest["name"]
+    contestType = contest["type"]
+    contestTime = convertTime(contest["startTimeSeconds"])
+    contestID = contest["id"]
+    contestURL = "http://codeforces.com/contests/" + str(contestID)
+    return contestTitle, contestURL, contestType, contestTime
