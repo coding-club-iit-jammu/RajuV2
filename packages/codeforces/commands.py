@@ -34,8 +34,8 @@ async def getContests(all=False):
     Fetches information about all the future contests
 
     Parameters
-    ---------- 
-    all: bool 
+    ----------
+    all: bool
         false: Only fetch official CF division contests
         true: fetch all gymkhana contests as well
     Returns
@@ -58,7 +58,7 @@ async def getContests(all=False):
     return futureContests
 
 
-async def getProblem(tags, counts=2):
+async def getProblem(tags, counts=2, maxRating=None):
     """
     Refer: https://codeforces.com/apiHelp/methods#problemset.problems
 
@@ -86,11 +86,21 @@ async def getProblem(tags, counts=2):
     counts = min(counts, Config['MAX_PROBLEMS'])
 
     allProblems = problems['result']['problems']
+
+    # filter by maxRatings using a clause
+    if(maxRating):
+        def clause(x):
+            try:
+                return x['rating'] <= maxRating
+            except:
+                return True
+        allProblems = list(filter(clause, allProblems))
+
     lenProblems = len(allProblems)
 
     # if no problems are found return empty Array
-    if(lenProblems == 0):
-        return []
+    if(lenProblems < counts):
+        return allProblems
 
     # randomly select the N problems from the problemset
     randomProblemsIdxs = sample(range(lenProblems), counts)
@@ -102,7 +112,7 @@ async def getProblem(tags, counts=2):
 # For Testing
 async def test():
     # Add debug/testing code here
-    resp = await getUserInfo(['tourist'])
+    resp = await getProblem(["dp"], 2, 2000)
     # resp_question = await getProblem(["implementation", "dp"])
     # resp = await getContests()
     print(json.dumps(resp, indent=3))

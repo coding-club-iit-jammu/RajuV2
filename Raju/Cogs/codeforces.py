@@ -25,7 +25,7 @@ class CodeForces(commands.Cog):
             await ctx.send("Call further commands in Codeforces")
 
     @cf.command()
-    async def listcontests(self, ctx, *, args=None):
+    async def listcontests(self, ctx, division=None):
         """
         List the upcoming contest list. 
         Uses the Optional arg for filtering for div:1,2,3 
@@ -34,12 +34,12 @@ class CodeForces(commands.Cog):
         # TODO: Fetch atmost 5 days of contests
 
         allContests = await getContests()
-        if(args):
-            try:
-                division = int(args)
-            except:
-                await ctx.send("Please send a valid integer argument (1/2/3)")
+        if(division):
+            errorCode, errorMessage = checkTypeInt(division, "division")
+            if(errorCode == -1):
+                await ctx.send(errorMessage)
                 return
+            division = int(division)
             errorCode, errorMessage = checkValidDiv(division)
             if(errorCode == -1):
                 await ctx.send(errorMessage)
@@ -47,7 +47,7 @@ class CodeForces(commands.Cog):
 
             allContests = filterContest(allContests, division)
             if(len(allContests) == 0):
-                await ctx.send("No Contests found for Div. "+str(args))
+                await ctx.send("No Contests found for Div. "+str(division))
 
         for contest in allContests:
             Title, Url, Type, StartTime = extractContestFields(contest)
@@ -86,9 +86,28 @@ class CodeForces(commands.Cog):
         # users = (await cf.getUserInfo(handle_list) )
         # msg = [str(a) + ": "+str(b)
         #        for (a, b) in zip(handle_list, users) ]
+
+        # Initialize maxRating as an empty String
+        maxRating = ""
+        # check if user has given a maxRating parameter
+        if("#" in args):
+            args, maxRating = (args.split("#"))
+        # remove spaces
+        maxRating = maxRating.strip()
+        # split the tags by commas and strip each tag
         args = list(args.split(","))
         args = [arg.strip() for arg in args]
-        problems = await cf.getProblem(args)
+
+        if(maxRating == ""):
+            problems = await cf.getProblem(args)
+        else:
+            # type checking the maxRating
+            errorCode, errorMessage = checkTypeInt(maxRating, "maxRating")
+            if(errorCode == -1):
+                await ctx.send(errorMessage)
+                return
+            problems = await cf.getProblem(args, 2, int(maxRating))
+
         if(len(problems) == 0):
             errorTag = ",".join(args)
             await ctx.send("No problems found with tags "+errorTag)
@@ -132,7 +151,7 @@ def extractProblemFields(problem):
     problemIndex = problem["index"]
     problemURL = "https://codeforces.com/contest/" + \
         str(problemContestId)+"/problem/"+str(problemIndex)
-    problemRating = problem["rating"]
+    problemRating = problem.get("rating", "Un-rated")
     problemTags = ",".join(problem["tags"])
 
     return problemTitle, problemURL, problemRating, problemTags
@@ -188,6 +207,14 @@ def makeProblemEmbed(Title, Url, Rating, Tags):
 """
     Functions for checking Arguments Validity
 """
+
+
+def checkTypeInt(argument, name):
+    try:
+        argument = int(argument)
+        return 1, ""
+    except:
+        return -1, "Please send a valid integer argument for "+name
 
 
 def checkValidDiv(division):
