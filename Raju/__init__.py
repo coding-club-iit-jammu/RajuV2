@@ -2,8 +2,12 @@ import os
 import discord
 from discord.ext import commands
 from discord.ext.commands import CommandNotFound
+from pymongo import MongoClient
 
 TOKEN = os.getenv('TOKEN')
+MONGO_URI = os.getenv('MONGODB')
+
+db = MongoClient(MONGO_URI)['raju']
 
 intents = discord.Intents.default()
 intents.members = True
@@ -25,6 +29,11 @@ async def on_ready():
 @bot.command()
 async def hi(ctx):
     await ctx.send(f'{ctx.author.mention} Hi I Raju v2 in making')
+
+@bot.command()
+async def check(ctx):
+    user = db.users.find_one()
+    await ctx.send(f'{user}')
 
 @bot.command()
 async def leave(ctx):

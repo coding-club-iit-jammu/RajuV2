@@ -2,6 +2,7 @@ from packages.codeforces.commands import getProblem, getUserInfo, getContests
 import discord
 from discord.ext import commands
 import json
+from Raju import db
 
 CODEEFORCES_THUMBNAIL = "https://sta.codeforces.com/s/96009/images/codeforces-telegram-square.png"
 
@@ -23,6 +24,11 @@ class CodeForces(commands.Cog):
         # Todo: Add Error Message here
         if ctx.invoked_subcommand is None:
             await ctx.send("Call further commands in Codeforces")
+    
+    @cf.command()
+    async def check(self, ctx):
+        user = db.users.find_one()
+        await ctx.send(f'{user}')
 
     @cf.command()
     async def listcontests(self, ctx, division=None):
