@@ -6,6 +6,7 @@ from datetime import datetime
 import pytz
 import requests
 import json
+import packages.codechef as cc
 
 tz = pytz.timezone('Asia/Kolkata')
 
@@ -24,14 +25,29 @@ class CodeChef(commands.Cog):
 
     @commands.group(pass_context=True)
     async def Codechef(self, ctx):
+        # TODO: Remove on release
         print("1212")
         if ctx.invoked_subcommand is None:
             await ctx.send("Ping 1")
 
     @Codechef.command()
     async def listcontests(self, ctx):
-        await ctx.send("contests")
+        """
+        Fetches the contests from https://www.codechef.com/contests and displays the future contests
+        """
+        # Get the list of table contents
+        # remove the title row
+        contest_table = (await cc.getFutureContests())[1:]
 
+        # Contruct the message embed and send
+        for contest in contest_table:
+            (CODE, NAME, START, _) = contest
+            URL = f'https://www.codechef.com/{CODE}'
+            embed = discord.Embed(title=NAME, color=0x00b4b4, url=URL)
+            embed.add_field(name='Start Time', value=START[:-3], inline=False) 
+            await ctx.send(embed=embed)
+
+        
     @Codechef.command()
     async def contestsinfo(self, ctx, code: str):
         uri = f'https://www.codechef.com/api/contests/{code}'
