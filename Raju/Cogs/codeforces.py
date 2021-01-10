@@ -1,4 +1,5 @@
-from packages.codeforces.commands import getProblem, getUserInfo, getContests
+import packages.codeforces as cf
+
 import discord
 from discord.ext import commands
 import json
@@ -37,14 +38,15 @@ class CodeForces(commands.Cog):
         Uses the Optional arg for filtering for div:1,2,3 
         Checks arg type, and if valid (1-3).
         """
-        # TODO: Fetch atmost 5 days of contests
 
-        allContests = await getContests()
+        allContests = await cf.getContests()
+        
         if(division):
             errorCode, errorMessage = checkTypeInt(division, "division")
             if(errorCode == -1):
                 await ctx.send(errorMessage)
                 return
+
             division = int(division)
             errorCode, errorMessage = checkValidDiv(division)
             if(errorCode == -1):
@@ -77,30 +79,21 @@ class CodeForces(commands.Cog):
         # Todo: Lookup role assignments
         pass
 
-    # TODO: ONLY FOR DEVELOPMENT.
-    # REMOVE ON RELEASE
 
     @cf.command()
-    async def testProblem(self, ctx, *, args):
-        # handles contains of all the args
-        # TEST1======= =>
+    async def Problem(self, ctx, *, args):
         import packages.codeforces as cf
         import json
-        # def get_rating(user): return user['rating']
-#
-        # handle_list = [handle for handle in handles.split(' ')]
-        # users = (await cf.getUserInfo(handle_list) )
-        # msg = [str(a) + ": "+str(b)
-        #        for (a, b) in zip(handle_list, users) ]
-
+        
         # Initialize maxRating as an empty String
         maxRating = ""
         # check if user has given a maxRating parameter
         if("#" in args):
             args, maxRating = (args.split("#"))
+
         # remove spaces
-        maxRating = maxRating.strip()
         # split the tags by commas and strip each tag
+        maxRating = maxRating.strip()
         args = list(args.split(","))
         args = [arg.strip() for arg in args]
 
@@ -125,17 +118,12 @@ class CodeForces(commands.Cog):
                 problemTitle,  problemURL, problemRating, problemTags)
             await ctx.send(embed=embedVar)
 
-        # await ctx.send(json.dumps(problems, indent=3))
-
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))
 
-
-"""
-    Added extra functionality for better display
-"""
-
+########################################################
+# DISPLAY UTILITIES 
 
 def convertTime(time):
     """
@@ -209,11 +197,8 @@ def makeProblemEmbed(Title, Url, Rating, Tags):
 
     return embedVar
 
-
-"""
-    Functions for checking Arguments Validity
-"""
-
+########################################################
+# Checking Arguement Validity
 
 def checkTypeInt(argument, name):
     try:
@@ -244,3 +229,4 @@ def filterContest(allContests, division):
         if(filterTag in contest["name"]):
             filteredContests.append(contest)
     return filteredContests
+########################################################
