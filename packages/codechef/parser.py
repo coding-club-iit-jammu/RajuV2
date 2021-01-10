@@ -14,7 +14,8 @@ async def getFutureContests():
     Columns for the table:         
     ['CODE', 'NAME', 'START', 'END']
 
-    Example: 
+    # Example: 
+    ----------
     >>> getFutureContests()
 
     [['CODE', 'NAME', 'START', 'END'], 
