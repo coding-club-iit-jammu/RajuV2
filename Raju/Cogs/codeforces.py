@@ -154,6 +154,32 @@ class CodeForces(commands.Cog):
         else:
             await ctx.send("Couldnot Complete Verification")
 
+    @ cf.command()
+    async def userInfo(self, ctx, *handles):
+        """
+        Get user information based on their handle
+        """
+        try:
+            userData = await cf.getUserInfo(handles)
+            for user in userData:
+                userHandle = user["handle"]
+                userUrl = "https://codeforces.com/profile/"+userHandle
+                userPic = "https:"+user["titlePhoto"]
+                userFirstName = user.get("firstName", None)
+                userLastName = user.get("lastName", "")
+                embedVar = makeEmbedTemplate(userHandle, userUrl, userPic)
+                if(userFirstName):
+                    embedVar.add_field(
+                        name="Name", value=userFirstName+" "+userLastName, inline=False)
+                embedVar.add_field(
+                    name="Rank", value=user["rank"], inline=False)
+                embedVar.add_field(
+                    name="Rating", value=user["rating"], inline=False)
+                await ctx.send(embed=embedVar)
+        except Exception as e:
+            print("Debug", e)
+            await ctx.send("Either an handle does not exist or the arguments are not specified")
+
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))

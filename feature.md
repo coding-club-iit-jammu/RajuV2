@@ -10,7 +10,7 @@
   - [ ] Have a bound on number of contests (default 5)
 
 ### Codeforces:
-- [ ] Overall Ranklist IITJ 
+- [X] Overall Ranklist IITJ 
 - [ ] Contests
   - [X] Div 1,2,3
   - [ ] Others??
@@ -18,7 +18,7 @@
 
 ### User Commands:
 - [ ] User-Add
-  - [ ] CF Handle
+  - [X] CF Handle
   - [ ] Codechef Handle
 - [ ] User-Remove
 - [ ] User-Update (Need to think of possible updations)
