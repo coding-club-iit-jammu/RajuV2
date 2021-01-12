@@ -14,7 +14,7 @@ async def getUserInfo(handles):
 
     Parameters
     ----------
-    handles: list<str>
+    `handles`: list<str>
         List of handles of all users
 
     Returns
@@ -35,7 +35,7 @@ async def getContests(all=False):
 
     Parameters
     ----------
-    all: bool
+    `all`: bool
         false: Only fetch official CF division contests
         true: fetch all gymkhana contests as well
     Returns
@@ -66,8 +66,7 @@ async def getProblem(tags, counts=2, maxRating=None):
 
     Parameters
     ----------
-    tags: list
-        list of tags
+    `tags`: list of tags
 
     Returns
     -------
@@ -109,9 +108,9 @@ async def getProblem(tags, counts=2, maxRating=None):
     return sampledProblems
 
 
-async def randomProblem():
+async def getRandomProblem():
     """
-    Get a random problem from Codeforces. 
+    Get a random problem from Codeforces.
 
     Returns
     -------
@@ -144,28 +143,46 @@ async def randomProblem():
             "flows",
             "geometry",
             "math"]
-    problem = None  
+    problem = None
     while(problem is None):
-    # Get a random tag
-        n = sample(range(len(tags)),1)[0] 
+        # Get a random tag
+        n = sample(range(len(tags)), 1)[0]
         tag = tags[n]
-        problem = await getProblem([tag],counts=1)
-    
+        problem = await getProblem([tag], counts=1)
+
     return problem
 
+
+async def getUserStatus(handle, limit=1):
+    """
+    Returns submissions of specified user.
+    Parameters
+    ----------
+    `handle`: The codeforces handle of the user
+
+    `limit`: The number of latest submissions to fetch
+
+    Returns
+    -------
+    A `submission` object
+
+    See Also: https://codeforces.com/apiHelp/objects#Submission
+    """
+    methodName = "user.status"
+    methodParam = f'handle={handle}&from=1&count={limit}'
+
+    return (await get(methodName, methodParam))['result']
+
 # For Testing
-
-
 async def test():
     # Add debug/testing code here
     # resp = await getProblem(["dp"], 2, 2000)
     # resp_question = await getProblem(["implementation", "dp"])
     # resp = await getContests()
-    resp = await randomProblem()
-    print(json.dumps(resp, indent=3))
+    # print(json.dumps(resp, indent=3))
     return
 
 if __name__ == "__main__":
     import asyncio
-    loop = asyncio.get_event_loop()
+    loop=asyncio.get_event_loop()
     loop.run_until_complete(test())
