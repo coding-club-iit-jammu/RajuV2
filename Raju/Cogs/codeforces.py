@@ -1,9 +1,9 @@
 import packages.codeforces as cf
-
+from packages import db
 import discord
 from discord.ext import commands
 import json
-from Raju import db
+import asyncio
 
 CODEEFORCES_THUMBNAIL = "https://sta.codeforces.com/s/96009/images/codeforces-telegram-square.png"
 
@@ -25,11 +25,6 @@ class CodeForces(commands.Cog):
         # Todo: Add Error Message here
         if ctx.invoked_subcommand is None:
             await ctx.send("Call further commands in Codeforces")
-    
-    @cf.command()
-    async def check(self, ctx):
-        user = db.users.find_one()
-        await ctx.send(f'{user}')
 
     @cf.command()
     async def listcontests(self, ctx, division=None):
@@ -38,9 +33,8 @@ class CodeForces(commands.Cog):
         Uses the Optional arg for filtering for div:1,2,3 
         Checks arg type, and if valid (1-3).
         """
-
         allContests = await cf.getContests()
-        
+
         if(division):
             errorCode, errorMessage = checkTypeInt(division, "division")
             if(errorCode == -1):
@@ -58,9 +52,9 @@ class CodeForces(commands.Cog):
                 await ctx.send("No Contests found for Div. "+str(division))
 
         for contest in allContests:
-            Title, Url, Type, StartTime = extractContestFields(contest)
-            embedVar = makeContestEmbed(Title, Url, Type, StartTime)
+            embedVar = makeContestEmbed(contest)
             await ctx.send(embed=embedVar)
+
         pass
 
     @cf.command()
@@ -68,8 +62,25 @@ class CodeForces(commands.Cog):
         """
         List the current rating list of all registered IIT Jammu members.
         """
-        # Todo: Get the user-handle from and proceed
-        pass
+        allRecords = await db.getAllUser()
+        handles = []
+        for record in allRecords:
+            if('handle' in record):
+                handles.append(record['handle'])
+            
+        users = await cf.getUserInfo(handles)
+        user_list = []
+        for user in users:
+            user_list.append((user['handle'], user['rating']))
+
+        # Sort according to the user-rating
+        def rating(u):
+            return u[1]
+        user_list.sort(key=rating)
+        rating_result = [x[0] + ":" + str(x[1]) for x in user_list]
+        
+        output = "\n".join(rating_result)
+        await ctx.send(output)
 
     @cf.command()
     async def assign_roles(self, ctx):
@@ -77,15 +88,17 @@ class CodeForces(commands.Cog):
         Assign discord roles based on the CF role, and also assign appropriete colors
         """
         # Todo: Lookup role assignments
-        pass
 
+        pass
 
     @cf.command()
     async def Problem(self, ctx, *, args):
+        """
+        Display a problem with the given tags and rating limit
+        """
         import packages.codeforces as cf
         import json
         
-        # Initialize maxRating as an empty String
         maxRating = ""
         # check if user has given a maxRating parameter
         if("#" in args):
@@ -112,18 +125,63 @@ class CodeForces(commands.Cog):
             await ctx.send("No problems found with tags "+errorTag)
 
         for problem in problems:
-            problemTitle, problemURL, problemRating, problemTags = extractProblemFields(
-                problem)
-            embedVar = makeProblemEmbed(
-                problemTitle,  problemURL, problemRating, problemTags)
+            embedVar = makeProblemEmbed(problem)
             await ctx.send(embed=embedVar)
+
+    @cf.command()
+    async def userAdd(self, ctx, handle: str):
+        """
+        Add a user to the db 
+        """
+        discordId = ctx.author.id
+        isPresent = await db.if_exists(discordId)
+        user = ctx.guild.get_member(discordId)
+        if(isPresent):
+            await ctx.send(
+                f'User: {user.mention} already exists in records. You can still update your records')
+            return
+        handle = handle.strip()
+        verified = await verify_user(ctx, handle)
+        if(verified):
+            await db.addUser(discordId, handle)
+            await ctx.send(f'User: {user.mention} is added successfully to our records')
+        else:
+            await ctx.send("Couldnot Complete Verification")
 
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))
 
+
+async def verify_user(ctx, handle) -> bool:
+    """
+    Verify a user handle via a submission on a random problem on codeforces
+    """
+    # Get the fields
+    problem = await cf.getRandomProblem()
+    embedVar = makeProblemEmbed(problem)
+    # send the problem to the user
+    await ctx.send(
+        "Make a submission which results in COMPILATION ERROR on the following problem within 3 minutes:")
+    await ctx.send(embed=embedVar)
+    await asyncio.sleep(180)
+
+    try:
+        userStatus = await cf.getUserStatus(handle)
+        latestSubmission = userStatus[0]
+        verdict = latestSubmission['verdict']
+        title = latestSubmission['problem']['name']
+
+        if(verdict == "COMPILATION_ERROR" and title == problem['name']):
+            return True
+        else:
+            return False
+    except:
+        return False
+
 ########################################################
-# DISPLAY UTILITIES 
+# DISPLAY UTILITIES
+
 
 def convertTime(time):
     """
@@ -135,39 +193,10 @@ def convertTime(time):
     return s
 
 
-def extractProblemFields(problem):
-    """
-     Extract Fields from a JSON
-    returns: the extracted fields
-    """
-    problemTitle = problem["name"]
-    problemContestId = problem["contestId"]
-    problemIndex = problem["index"]
-    problemURL = "https://codeforces.com/contest/" + \
-        str(problemContestId)+"/problem/"+str(problemIndex)
-    problemRating = problem.get("rating", "Un-rated")
-    problemTags = ",".join(problem["tags"])
-
-    return problemTitle, problemURL, problemRating, problemTags
-
-
-def extractContestFields(contest):
-    """
-    Extract Fields from a JSON
-    returns: the extracted fields
-    """
-    contestTitle = contest["name"]
-    contestType = contest["type"]
-    contestTime = convertTime(contest["startTimeSeconds"])
-    contestID = contest["id"]
-    contestURL = "http://codeforces.com/contests/" + str(contestID)
-    return contestTitle, contestURL, contestType, contestTime
-
-
 def makeEmbedTemplate(Title, Url, Thumbnail=CODEEFORCES_THUMBNAIL):
     """
     Makes an embedTemplate given Title, url and thumbnail
-    returs: Embed Object
+    returns: Embed Object
     """
     embedVar = discord.Embed(
         title=Title, color=0x00ff00, url=Url)
@@ -175,22 +204,36 @@ def makeEmbedTemplate(Title, Url, Thumbnail=CODEEFORCES_THUMBNAIL):
     return embedVar
 
 
-def makeContestEmbed(Title, Url, Type, StartTime):
+def makeContestEmbed(contest):
     """
     Makes an embed for a contest 
     returns: Embed Object
     """
+    Title = contest["name"]
+    Type = contest["type"]
+    StartTime = convertTime(contest["startTimeSeconds"])
+    contestID = contest["id"]
+    Url = "http://codeforces.com/contests/" + str(contestID)
+
     embedVar = makeEmbedTemplate(Title, Url)
     embedVar.add_field(name="Type", value=Type, inline=False)
     embedVar.add_field(name="Start Time", value=StartTime, inline=False)
     return embedVar
 
 
-def makeProblemEmbed(Title, Url, Rating, Tags):
+def makeProblemEmbed(problem):
     """
     Makes an embed for a Problem
     returns: Embed Object
     """
+    Title = problem["name"]
+    problemContestId = problem["contestId"]
+    problemIndex = problem["index"]
+    Url = "https://codeforces.com/contest/" + \
+        str(problemContestId)+"/problem/"+str(problemIndex)
+    Rating = problem.get("rating", "Un-rated")
+    Tags = ",".join(problem["tags"])
+
     embedVar = makeEmbedTemplate(Title, Url)
     embedVar.add_field(name="Rating", value=Rating, inline=False)
     embedVar.add_field(name="Tags", value=Tags, inline=False)
@@ -199,6 +242,7 @@ def makeProblemEmbed(Title, Url, Rating, Tags):
 
 ########################################################
 # Checking Arguement Validity
+
 
 def checkTypeInt(argument, name):
     try:

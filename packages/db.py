@@ -1,0 +1,45 @@
+from Raju import db
+
+
+def makeDoc(discordId, handle=None):
+    doc = {'discordId': discordId}
+    if(handle is None):
+        pass
+    else:
+        doc['handle'] = handle
+    return doc
+
+
+async def addUser(discordId, handle):
+    """
+    Add the handle against the discordId
+    """
+    db.users.insert_one(makeDoc(discordId, handle))
+
+
+async def updateUser(discordId, handle):
+    """
+    Update the handle of a user in the database
+    """
+    db.users.update_one(makeDoc(discordId), makeDoc(discordId, handle))
+
+
+async def deleteUser(discordId):
+    """
+    Remove the user with the following discord Id
+    """
+    db.users.delete_one(makeDoc(discordId))
+
+
+async def if_exists(discordId):
+    """
+    Checks if the given Id exists in the record
+    """
+    user = db.users.find_one(makeDoc(discordId))
+    if(user is None):
+        return False
+    else:
+        return True
+
+async def getAllUser():
+    return list(db.users.find())

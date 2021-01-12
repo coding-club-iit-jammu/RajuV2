@@ -19,13 +19,14 @@ async def getUserInfo(handles):
 
     Returns
     -------
-    list
-        List of json objects contating user info for the handles
+    List of `User` objects
+    
+    See also: https://codeforces.com/apiHelp/objects#User
     """
     methodName = 'user.info'
     handleParams = 'handles=' + ';'.join(handles)
     return (await get(methodName, handleParams))['result']
-
+    
 
 async def getContests(all=False):
     """
@@ -150,7 +151,7 @@ async def getRandomProblem():
         tag = tags[n]
         problem = await getProblem([tag], counts=1)
 
-    return problem
+    return problem[0]
 
 
 async def getUserStatus(handle, limit=1):
