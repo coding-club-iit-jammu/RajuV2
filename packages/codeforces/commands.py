@@ -40,7 +40,7 @@ async def getContests(all=False):
         true: fetch all gymkhana contests as well
     Returns
     -------
-    Returns a list of Contest objects.
+    Returns a list of `Contest` objects.
 
     See Also: https://codeforces.com/apiHelp/objects#Contest
     """
@@ -71,7 +71,7 @@ async def getProblem(tags, counts=2, maxRating=None):
 
     Returns
     -------
-    List of Problem objects
+    List of `Problem` objects
 
     See Also: https://codeforces.com/apiHelp/objects#Problem
     """
@@ -109,12 +109,59 @@ async def getProblem(tags, counts=2, maxRating=None):
     return sampledProblems
 
 
+async def randomProblem():
+    """
+    Get a random problem from Codeforces. 
+
+    Returns
+    -------
+    A `Problem` object
+
+    See Also: https://codeforces.com/apiHelp/objects#Problem
+    """
+    # A list of problem tags
+    tags = ["fft",
+            "two pointers",
+            "binary search",
+            "dsu",
+            "strings",
+            "number theory",
+            "data structures",
+            "hashing",
+            "shortest paths",
+            "matrices",
+            "string suffix structures",
+            "graph matchings",
+            "dp",
+            "dfs and similar",
+            "meet-in-the-middle",
+            "games",
+            "schedules",
+            "constructive algorithms",
+            "greedy",
+            "bitmasks",
+            "divide and conquer",
+            "flows",
+            "geometry",
+            "math"]
+    problem = None  
+    while(problem is None):
+    # Get a random tag
+        n = sample(range(len(tags)),1)[0] 
+        tag = tags[n]
+        problem = await getProblem([tag],counts=1)
+    
+    return problem
+
 # For Testing
+
+
 async def test():
     # Add debug/testing code here
-    resp = await getProblem(["dp"], 2, 2000)
+    # resp = await getProblem(["dp"], 2, 2000)
     # resp_question = await getProblem(["implementation", "dp"])
     # resp = await getContests()
+    resp = await randomProblem()
     print(json.dumps(resp, indent=3))
     return
 
