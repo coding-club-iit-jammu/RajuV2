@@ -6,6 +6,8 @@ import json
 import asyncio
 
 CODEEFORCES_THUMBNAIL = "https://sta.codeforces.com/s/96009/images/codeforces-telegram-square.png"
+CODING_CLUB_URL = "https://www.codingclubiitjammu.tech"
+CODING_CLUB_LOGO = "https://www.codingclubiitjammu.tech/assets/cc.png"
 
 
 class CodeForces(commands.Cog):
@@ -29,8 +31,8 @@ class CodeForces(commands.Cog):
     @cf.command()
     async def listcontests(self, ctx, division=None):
         """
-        List the upcoming contest list. 
-        Uses the Optional arg for filtering for div:1,2,3 
+        List the upcoming contest list.
+        Uses the Optional arg for filtering for div:1,2,3
         Checks arg type, and if valid (1-3).
         """
         allContests = await cf.getContests()
@@ -67,7 +69,7 @@ class CodeForces(commands.Cog):
         for record in allRecords:
             if('handle' in record):
                 handles.append(record['handle'])
-            
+
         users = await cf.getUserInfo(handles)
         user_list = []
         for user in users:
@@ -76,29 +78,33 @@ class CodeForces(commands.Cog):
         # Sort according to the user-rating
         def rating(u):
             return u[1]
-        user_list.sort(key=rating)
-        rating_result = [x[0] + ":" + str(x[1]) for x in user_list]
-        
-        output = "\n".join(rating_result)
-        await ctx.send(output)
+        user_list.sort(key=rating, reverse=True)
+        rating_result = [x[0]+":  "+str(x[1]) for x in user_list]
 
-    @cf.command()
+        embedVar = makeEmbedTemplate(
+            "Coding Club IITJ Member- Ratings", CODING_CLUB_URL, CODING_CLUB_LOGO)
+        printString = '\n'.join(rating_result)
+        embedVar.description = printString
+
+        await ctx.send(embed=embedVar)
+
+    @ cf.command()
     async def assign_roles(self, ctx):
-        """ 
+        """
         Assign discord roles based on the CF role, and also assign appropriete colors
         """
         # Todo: Lookup role assignments
 
         pass
 
-    @cf.command()
+    @ cf.command()
     async def Problem(self, ctx, *, args):
         """
         Display a problem with the given tags and rating limit
         """
         import packages.codeforces as cf
         import json
-        
+
         maxRating = ""
         # check if user has given a maxRating parameter
         if("#" in args):
@@ -128,10 +134,10 @@ class CodeForces(commands.Cog):
             embedVar = makeProblemEmbed(problem)
             await ctx.send(embed=embedVar)
 
-    @cf.command()
+    @ cf.command()
     async def userAdd(self, ctx, handle: str):
         """
-        Add a user to the db 
+        Add a user to the db
         """
         discordId = ctx.author.id
         isPresent = await db.if_exists(discordId)
@@ -199,14 +205,14 @@ def makeEmbedTemplate(Title, Url, Thumbnail=CODEEFORCES_THUMBNAIL):
     returns: Embed Object
     """
     embedVar = discord.Embed(
-        title=Title, color=0x00ff00, url=Url)
+        title=Title, color=0xbedcfa, url=Url)
     embedVar.set_thumbnail(url=Thumbnail)
     return embedVar
 
 
 def makeContestEmbed(contest):
     """
-    Makes an embed for a contest 
+    Makes an embed for a contest
     returns: Embed Object
     """
     Title = contest["name"]

@@ -9,6 +9,7 @@ import json
 import packages.codechef as cc
 
 tz = pytz.timezone('Asia/Kolkata')
+CODECHEF_LOGO = 'https://i.pinimg.com/originals/c5/d9/fc/c5d9fc1e18bcf039f464c2ab6cfb3eb6.jpg'
 
 
 class CodeChef(commands.Cog):
@@ -44,10 +45,10 @@ class CodeChef(commands.Cog):
             (CODE, NAME, START, _) = contest
             URL = f'https://www.codechef.com/{CODE}'
             embed = discord.Embed(title=NAME, color=0x00b4b4, url=URL)
-            embed.add_field(name='Start Time', value=START[:-3], inline=False) 
+            embed.set_thumbnail(url=CODECHEF_LOGO)
+            embed.add_field(name='Start Time', value=START[:-3], inline=False)
             await ctx.send(embed=embed)
 
-        
     @Codechef.command()
     async def contestsinfo(self, ctx, code: str):
         uri = f'https://www.codechef.com/api/contests/{code}'
