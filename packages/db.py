@@ -41,5 +41,18 @@ async def if_exists(discordId):
     else:
         return True
 
+
+async def getUserHandle(discordId):
+    """
+    Returns the userHandle for a discord Id, 
+    Make sure to check if_exists first
+    """
+    user = db.users.find_one(makeDoc(discordId))
+    if(user is None):
+        return None
+    else:
+        return user["handle"]
+
+
 async def getAllUser():
     return list(db.users.find())

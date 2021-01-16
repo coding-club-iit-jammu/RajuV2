@@ -9,6 +9,11 @@ CODEEFORCES_THUMBNAIL = "https://sta.codeforces.com/s/96009/images/codeforces-te
 CODING_CLUB_URL = "https://www.codingclubiitjammu.tech"
 CODING_CLUB_LOGO = "https://www.codingclubiitjammu.tech/assets/cc.png"
 
+ROLES = ["beginner", "newbie", "pupil",
+         "specialist," "expert", "candidate master", "GAWD"]
+ROLE_COLOR = {"beginner": 0xfff3e6, "newbie": 0xdddddd, "pupil": 0xc0e218,
+              "specialist": 0x64dfdf, "expert": 0x1a508b, "candidate master": 0x48426d, "GAWD": 0xffcc29}
+
 
 class CodeForces(commands.Cog):
     """
@@ -94,7 +99,29 @@ class CodeForces(commands.Cog):
         Assign discord roles based on the CF role, and also assign appropriete colors
         """
         # Todo: Lookup role assignments
+        discordId = ctx.author.id
+        isPresent = await db.if_exists(discordId)
+        user = ctx.guild.get_member(discordId)
+        if(isPresent == False):
+            await ctx.send(f'User: {user.mention} does not exists in our records. Please use userAdd command to add your cf handle first')
+            return
+        userHandle = await db.getUserHandle(discordId)
+        userData = await cf.getUserInfo([userHandle])
+        userRank = userData[0].get("rank", None)
+        if(userRank):
+            for role in user.roles:
+                if(role.name in ROLES):
+                    await user.remove_roles(role)
+            if(userData[0].get("rating", 0) >= 2100):
+                await give_role(user, "GAWD", discord.Colour(ROLE_COLOR["GAWD"]))
+                await ctx.send(f'You have been awarded GAWD status !! {user.mention}')
+            else:
+                await give_role(user, userRank, discord.Colour(ROLE_COLOR[userRank]))
+                await ctx.send(f'Updated user-role to {userRank} for {user.mention}')
 
+        else:
+            await give_role(user, "beginner", discord.Colour(ROLE_COLOR["beginner"]))
+            await ctx.send(f'No rank on CodeForces, given beginner status to {user.mention}')
         pass
 
     @ cf.command()
@@ -183,6 +210,15 @@ class CodeForces(commands.Cog):
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))
+
+
+async def give_role(member, roles, colour):
+    try:
+        verf_role = discord.utils.get(member.guild.roles, name=roles)
+        await member.add_roles(verf_role)
+    except:
+        verf_role = await member.guild.create_role(name=roles, mentionable=True, colour=colour)
+        await member.add_roles(verf_role)
 
 
 async def verify_user(ctx, handle) -> bool:
