@@ -21,7 +21,7 @@ async def updateUser(discordId, handle):
     """
     Update the handle of a user in the database
     """
-    db.users.update_one(makeDoc(discordId), makeDoc(discordId, handle))
+    db.users.replace_one(makeDoc(discordId), makeDoc(discordId, handle))
 
 
 async def deleteUser(discordId):

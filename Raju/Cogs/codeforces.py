@@ -11,7 +11,7 @@ CODING_CLUB_LOGO = "https://www.codingclubiitjammu.tech/assets/cc.png"
 
 ROLES = ["beginner", "newbie", "pupil",
          "specialist," "expert", "candidate master", "GAWD"]
-ROLE_COLOR = {"beginner": 0xfff3e6, "newbie": 0xdddddd, "pupil": 0xc0e218,
+ROLE_COLOR = {"beginner": 0xfff3e6, "newbie": 0xcdd0cb, "pupil": 0xc0e218,
               "specialist": 0x64dfdf, "expert": 0x1a508b, "candidate master": 0x48426d, "GAWD": 0xffcc29}
 
 
@@ -98,27 +98,31 @@ class CodeForces(commands.Cog):
         """
         Assign discord roles based on the CF role, and also assign appropriete colors
         """
-        # Todo: Lookup role assignments
         discordId = ctx.author.id
         isPresent = await db.if_exists(discordId)
         user = ctx.guild.get_member(discordId)
+        # check if user updates in our record
         if(isPresent == False):
             await ctx.send(f'User: {user.mention} does not exists in our records. Please use userAdd command to add your cf handle first')
             return
         userHandle = await db.getUserHandle(discordId)
         userData = await cf.getUserInfo([userHandle])
         userRank = userData[0].get("rank", None)
+        # Clear all previous roles
+        for role in user.roles:
+            if(role.name in ROLES):
+                await user.remove_roles(role)
+
+        # gawd status
         if(userRank):
-            for role in user.roles:
-                if(role.name in ROLES):
-                    await user.remove_roles(role)
             if(userData[0].get("rating", 0) >= 2100):
                 await give_role(user, "GAWD", discord.Colour(ROLE_COLOR["GAWD"]))
                 await ctx.send(f'You have been awarded GAWD status !! {user.mention}')
+        # other statuses
             else:
                 await give_role(user, userRank, discord.Colour(ROLE_COLOR[userRank]))
                 await ctx.send(f'Updated user-role to {userRank} for {user.mention}')
-
+        # unranked
         else:
             await give_role(user, "beginner", discord.Colour(ROLE_COLOR["beginner"]))
             await ctx.send(f'No rank on CodeForces, given beginner status to {user.mention}')
@@ -165,21 +169,25 @@ class CodeForces(commands.Cog):
     async def userAdd(self, ctx, handle: str):
         """
         Add a user to the db
+        Also updates the handle if already there
         """
         discordId = ctx.author.id
         isPresent = await db.if_exists(discordId)
         user = ctx.guild.get_member(discordId)
         if(isPresent):
             await ctx.send(
-                f'User: {user.mention} already exists in records. You can still update your records')
-            return
+                f'User: {user.mention} already exists in records. Your handle will be updated in our records')
         handle = handle.strip()
         verified = await verify_user(ctx, handle)
         if(verified):
-            await db.addUser(discordId, handle)
-            await ctx.send(f'User: {user.mention} is added successfully to our records')
+            if(isPresent):
+                await db.updateUser(discordId, handle)
+                await ctx.send(f'User: {user.mention} is added updated in our records')
+            else:
+                await db.addUser(discordId, handle)
+                await ctx.send(f'User: {user.mention} is added successfully to our records')
         else:
-            await ctx.send("Couldnot Complete Verification")
+            await ctx.send("Could not Complete Verification")
 
     @ cf.command()
     async def userInfo(self, ctx, *handles):
