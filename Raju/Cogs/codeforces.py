@@ -215,6 +215,45 @@ class CodeForces(commands.Cog):
             print("Debug", e)
             await ctx.send("Either an handle does not exist or the arguments are not specified")
 
+    @ cf.command()
+    async def contestStandings(self, ctx, contestID):
+        """
+        Returns ranklist of all users in the DB for a particular contest
+        Arguments: 
+        contestID: Note it is not the round numbe. 
+        It can be seen in contest URL. For example: /contest/566/status
+
+        """
+        allUsers = await db.getAllUser()
+        allHandles = []
+
+        for user in allUsers:
+            if(user.get("handle", -1) != -1):
+                allHandles.append(user["handle"])
+
+        rankResponse = await cf.getContestStandings(allHandles, contestID)
+        if(rankResponse["status"] != "OK"):
+            await ctx.send(f'Error occured, status returned {rankResponse["status"]}')
+            return
+        contestName = rankResponse["result"]["contest"]["name"]
+        userRanklist = rankResponse["result"]["rows"]
+        def clause(x): return x["party"]["participantType"] == "CONTESTANT"
+
+        filteredList = list(filter(clause, userRanklist))
+        embedVar = makeEmbedTemplate(
+            "Contest Standings for "+contestName, "https://codeforces.com/contest/"+str(contestID))
+        localRank = 1
+        for rowObject in filteredList:
+            userName = "#"+str(localRank) + " " + \
+                rowObject["party"]["members"][0]["handle"]
+            fields = "Rank: "+str(rowObject["rank"])+" "
+            fields += "Points: "+str(rowObject["points"])+" "
+            fields += "Penalty: "+str(rowObject["penalty"])
+            embedVar.add_field(name=userName, value=fields, inline=False)
+            localRank += 1
+
+        await ctx.send(embed=embedVar)
+
 
 def setup(bot):
     bot.add_cog(CodeForces(bot))

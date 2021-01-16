@@ -11,10 +11,10 @@
 
 ### Codeforces:
 - [X] Overall Ranklist IITJ 
-- [ ] Contests
+- [X] Contests
   - [X] Div 1,2,3
   - [ ] Others??
-- [ ] Assign Roles based on ratings
+- [X] Assign Roles based on ratings
 
 ### User Commands:
 - [ ] User-Add

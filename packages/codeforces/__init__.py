@@ -2,4 +2,4 @@
 
 # Below is a list of all the commands
 
-from .commands import getUserInfo, getContests, getProblem, getRandomProblem, getUserStatus
+from .commands import getUserInfo, getContests, getProblem, getRandomProblem, getUserStatus, getContestStandings

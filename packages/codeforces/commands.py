@@ -20,13 +20,13 @@ async def getUserInfo(handles):
     Returns
     -------
     List of `User` objects
-    
+
     See also: https://codeforces.com/apiHelp/objects#User
     """
     methodName = 'user.info'
     handleParams = 'handles=' + ';'.join(handles)
     return (await get(methodName, handleParams))['result']
-    
+
 
 async def getContests(all=False):
     """
@@ -174,16 +174,41 @@ async def getUserStatus(handle, limit=1):
 
     return (await get(methodName, methodParam))['result']
 
+
+async def getContestStandings(handles, contestId):
+    """
+    Returns a ranklist object for specified handles 
+    Parameters
+    ----------
+    `handle`: The codeforces handles of the user
+
+    `contestId`: The ID of the contest
+
+    Returns
+    -------
+    A `ranklist` object
+
+    See Also: https://codeforces.com/apiHelp/objects#RanklistRow
+    """
+
+    methodName = "contest.standings"
+    methodParams = "contestId=" + \
+        str(contestId)+"&handles="+";".join(handles)+"&showUnofficial=true"
+
+    ranklist = await get(methodName, methodParams)
+    return ranklist
+
+
 # For Testing
 async def test():
     # Add debug/testing code here
     # resp = await getProblem(["dp"], 2, 2000)
     # resp_question = await getProblem(["implementation", "dp"])
-    # resp = await getContests()
-    # print(json.dumps(resp, indent=3))
+    # resp = await getContestStandings(['Sam6134', 'abhishek0220'], 1367)
+    #print(json.dumps(resp, indent=3))
     return
 
 if __name__ == "__main__":
     import asyncio
-    loop=asyncio.get_event_loop()
+    loop = asyncio.get_event_loop()
     loop.run_until_complete(test())
