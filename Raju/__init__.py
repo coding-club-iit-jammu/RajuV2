@@ -28,7 +28,7 @@ async def on_ready():
 
 @bot.command()
 async def hi(ctx):
-    await ctx.send(f'{ctx.author.mention} Hi I Raju v2 in making')
+    await ctx.send(f'{ctx.author.mention} Hi I Raju v2.1')
 
 @bot.command()
 async def check(ctx):
