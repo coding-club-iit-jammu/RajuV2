@@ -1,5 +1,5 @@
 import packages.codeforces as cf
-from packages import db
+from Raju import db_wrapper as db
 import discord
 from discord.ext import commands
 import json
@@ -41,7 +41,6 @@ class CodeForces(commands.Cog):
         Checks arg type, and if valid (1-3).
         """
         allContests = await cf.getContests()
-
         if(division):
             errorCode, errorMessage = checkTypeInt(division, "division")
             if(errorCode == -1):
@@ -57,12 +56,13 @@ class CodeForces(commands.Cog):
             allContests = filterContest(allContests, division)
             if(len(allContests) == 0):
                 await ctx.send("No Contests found for Div. "+str(division))
+        
+        if(len(allContests) == 0):
+            await ctx.send("No Contests found in any of the Div")
 
         for contest in allContests:
             embedVar = makeContestEmbed(contest)
             await ctx.send(embed=embedVar)
-
-        pass
 
     @cf.command()
     async def ratings(self, ctx):
