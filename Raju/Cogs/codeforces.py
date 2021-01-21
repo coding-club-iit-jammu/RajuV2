@@ -69,7 +69,7 @@ class CodeForces(commands.Cog):
         """
         List the current rating list of all registered IIT Jammu members.
         """
-        allRecords = await db.getAllUser()
+        allRecords = await db.getAllUser({'_id' : 0, 'handle' : 1})
         handles = []
         for record in allRecords:
             if('handle' in record):
@@ -224,7 +224,7 @@ class CodeForces(commands.Cog):
         It can be seen in contest URL. For example: /contest/566/status
 
         """
-        allUsers = await db.getAllUser()
+        allUsers = await db.getAllUser({'_id' : 0, 'handle' : 1})
         allHandles = []
 
         for user in allUsers:
