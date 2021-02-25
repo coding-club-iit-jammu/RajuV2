@@ -35,7 +35,7 @@ async def if_exists(discordId):
     """
     Checks if the given Id exists in the record
     """
-    user = db.users.find_one(makeDoc(discordId), {'id':0, 'discordId' : 1})
+    user = db.users.find_one(makeDoc(discordId), {'_id':0, 'discordId' : 1})
     if(user is None):
         return False
     else:
@@ -47,7 +47,7 @@ async def getUserHandle(discordId):
     Returns the userHandle for a discord Id, 
     Make sure to check if_exists first
     """
-    user = db.users.find_one(makeDoc(discordId), {'id':0, 'handle' : 1})
+    user = db.users.find_one(makeDoc(discordId), {'_id':0, 'handle' : 1})
     if(user is None):
         return None
     else:
