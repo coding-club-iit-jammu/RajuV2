@@ -7,6 +7,7 @@ import pytz
 import requests
 import json
 import packages.codechef as cc
+from Raju.chefapi import ChefAPI
 
 tz = pytz.timezone('Asia/Kolkata')
 CODECHEF_LOGO = 'https://i.pinimg.com/originals/c5/d9/fc/c5d9fc1e18bcf039f464c2ab6cfb3eb6.jpg'
@@ -32,21 +33,25 @@ class CodeChef(commands.Cog):
             await ctx.send("Ping 1")
 
     @Codechef.command()
+    @commands.cooldown(25, 500, commands.BucketType.default)
     async def listcontests(self, ctx):
         """
         Fetches the contests from https://www.codechef.com/contests and displays the future contests
         """
-        # Get the list of table contents
-        # remove the title row
-        contest_table = (await cc.getFutureContests())[1:]
+        chef_obj = ChefAPI()
+        contest_table = chef_obj.getContest()['contestList']
 
         # Contruct the message embed and send
         for contest in contest_table:
-            (CODE, NAME, START, _) = contest
+            CODE = contest['code']
+            NAME = contest['name']
+            START = contest['startDate']
+            END = contest['endDate']
             URL = f'https://www.codechef.com/{CODE}'
             embed = discord.Embed(title=NAME, color=0x00b4b4, url=URL)
             embed.set_thumbnail(url=CODECHEF_LOGO)
             embed.add_field(name='Start Time', value=START[:-3], inline=False)
+            embed.add_field(name='End Time', value=END[:-3], inline=False)
             await ctx.send(embed=embed)
 
     @Codechef.command()

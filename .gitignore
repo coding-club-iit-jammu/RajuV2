@@ -1,5 +1,6 @@
 venv
 .env
+chefCredentials.json
 __pycache__/
 code.py
 .vscode/launch.json
