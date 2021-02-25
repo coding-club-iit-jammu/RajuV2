@@ -32,8 +32,6 @@ class ChefAPI:
             return "Invalid creds"
         ChefAPI.CHEF_CREDS['time'] =  int(time.time())
         ChefAPI.CHEF_CREDS['accessToken'] = res_content['result']['data']['access_token']
-        with open('chefCredentials.json', 'w', encoding='utf-8') as chefFile:
-            json.dump(ChefAPI.CHEF_CREDS, chefFile, ensure_ascii=False, indent=4)
         return "OK"
     
     @staticmethod
@@ -43,14 +41,7 @@ class ChefAPI:
                 return ChefAPI.CHEF_CREDS['accessToken']
             if( ChefAPI.chefAuthorize() == "OK"):
                 return ChefAPI.CHEF_CREDS['accessToken']
-        try:
-            chefFile = open('chefCredentials.json','r')
-            ChefAPI.CHEF_CREDS = json.loads(chefFile.read()) 
-            chefFile.close()
-            if( (int(time.time()) - ChefAPI.CHEF_CREDS.get('time',0)) < 3300):
-                return ChefAPI.CHEF_CREDS['accessToken']
-        except IOError:
-            "File not exist"
+        
         if(ChefAPI.chefAuthorize() == "OK"):
             return ChefAPI.CHEF_CREDS['accessToken']
 
