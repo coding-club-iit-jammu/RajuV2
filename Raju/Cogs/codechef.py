@@ -26,15 +26,15 @@ class CodeChef(commands.Cog):
         print("Module Codechef Loaded")
 
     @commands.group(pass_context=True)
-    async def Codechef(self, ctx):
+    async def chef(self, ctx):
         # TODO: Remove on release
         print("1212")
         if ctx.invoked_subcommand is None:
             await ctx.send("Ping 1")
 
-    @Codechef.command()
+    @chef.command()
     @commands.cooldown(25, 500, commands.BucketType.default)
-    async def listcontests(self, ctx):
+    async def contests(self, ctx):
         """
         Fetches the contests from https://www.codechef.com/contests and displays the future contests
         """
@@ -54,7 +54,7 @@ class CodeChef(commands.Cog):
             embed.add_field(name='End Time', value=END[:-3], inline=False)
             await ctx.send(embed=embed)
 
-    @Codechef.command()
+    @chef.command()
     async def contestsinfo(self, ctx, code: str):
         uri = f'https://www.codechef.com/api/contests/{code}'
         res = requests.get(uri)
