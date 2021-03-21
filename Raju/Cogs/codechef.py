@@ -34,10 +34,8 @@ class CodeChef(commands.Cog):
 
     @commands.group(pass_context=True)
     async def chef(self, ctx):
-        # TODO: Remove on release
-        print("1212")
         if ctx.invoked_subcommand is None:
-            await ctx.send("Ping 1")
+            await ctx.send("Call Valid commands under CodeChef")
 
     @chef.command()
     @commands.cooldown(25, 500, commands.BucketType.default)

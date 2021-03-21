@@ -303,8 +303,10 @@ def convertTime(time):
     Converting time in seconds to datetime object
     returns: string
     """
-    from datetime import datetime
-    s = (datetime.fromtimestamp(time).strftime("%I:%M %p %A, %B %d, %Y "))
+    from datetime import datetime,timedelta
+    newTime = datetime.fromtimestamp(time) + timedelta(hours = 5,minutes = 30)
+    s = (newTime.strftime("%I:%M %p %A, %B %d, %Y "))
+    
     return s
 
 
